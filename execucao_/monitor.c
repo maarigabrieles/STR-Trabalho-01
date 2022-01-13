@@ -1,11 +1,12 @@
 /*	CONTROLE CALDEIRA
 *	Trabalho 01 - Disciplina: Software em Tempo Real
 *	Prof: Reuber Regis
-*	Equipe:	
-*		Francisco Cassiano de Vasconcelos Souza
-*		
-*		
-*
+*	Equipe:												Matrícula:
+*		Francisco Cassiano de Vasconcelos Souza			413067
+*		Antonio Ray Martins Vieira						404583
+*		Maria Gabriele Bezerra da Silva					403736
+*		Mariana Teixeira de Castro 						403363
+*		Raquel Sousa Silveira							402857
 */
 
 #include <stdlib.h>
