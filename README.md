@@ -11,4 +11,4 @@ java -jar .\Aquecedor2021.jar 4545
 gcc -o monitor monitor.c atuadores.c bufduplo.c controles.c sensor.c socket.c tela.c -lpthread
 
 - Executar a main da aplicação
-./monitor <ip> 4545
+./monitor ip 4545
