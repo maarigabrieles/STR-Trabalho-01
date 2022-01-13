@@ -56,7 +56,7 @@ void thread_mostra_status(void) {
 		system("tput reset");
 		printf("------------------------------------\n");
 		printf("Temperatura digitada do usuario (Te)--> %.2lf\n", usuario_temp);
-		printf("Temperatura do ar (Ta)--> %.2lf\n", usuario_nivel);
+		printf("Nivel da agua digitada do usuario (Ne)--> %.2lf\n", usuario_nivel);
 		printf("Temperatura do ar (Ta)--> %.2lf\n", ta);
 		printf("Temperatura interior (T)--> %.2lf\n", t);
 		printf("Temperatura da agua que entra (Ti)--> %.2lf\n", ti);
@@ -274,23 +274,23 @@ int main( int argc, char *argv[]) {
 	cria_socket(argv[1], atoi(argv[2]));
 	
 	//criação das respectivas threads trabalhadas
-    pthread_t t1, t2, t3, ler_usuario, controle_temp, controle_nivel, espera_buffer, tempo_resposta_buffd;
+    pthread_t mostra_status, le_sensor, alarme, ler_usuario, controle_temp, controle_nivel, espera_buffer, tempo_resposta_buffd;
     
     pthread_create(&ler_usuario, NULL, (void *) thread_ler_usuario, NULL);
     pthread_join( ler_usuario, NULL);
-    pthread_create(&t1, NULL, (void *) thread_mostra_status, NULL);
-    pthread_create(&t2, NULL, (void *) thread_le_sensor, NULL);
+    pthread_create(&mostra_status, NULL, (void *) thread_mostra_status, NULL);
+    pthread_create(&le_sensor, NULL, (void *) thread_le_sensor, NULL);
     pthread_create(&espera_buffer, NULL, (void *) *bufduplo_esperaBufferCheio_temp_resp, NULL);
     pthread_create(&controle_temp, NULL, (void *) thread_controle_Temperatura, NULL);
     pthread_create(&controle_nivel, NULL, (void *) thread_controle_Nivel, NULL);
-    pthread_create(&t3, NULL, (void *) thread_alarme, NULL);
+    pthread_create(&alarme, NULL, (void *) thread_alarme, NULL);
     pthread_create(&tempo_resposta_buffd, NULL, (void *) thread_bufduplo_tempo_resposta, NULL);
     
 	
-	pthread_join( t1, NULL);
-	pthread_join( t2, NULL);
+	pthread_join( mostra_status, NULL);
+	pthread_join( le_sensor, NULL);
 	pthread_join( espera_buffer, NULL);
-	pthread_join( t3, NULL);
+	pthread_join( alarme, NULL);
 	pthread_join( controle_temp, NULL);
 	pthread_join( controle_nivel, NULL);
 	pthread_join( tempo_resposta_buffd, NULL);

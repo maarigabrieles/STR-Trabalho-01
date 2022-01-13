@@ -62,6 +62,7 @@ void bufduplo_guardaTempo_Resposta(double v_lido){
 // Chamado pela thread que espera e enche o buffer
 double *bufduplo_esperaBufferCheio_temp_resp( void) {
 	double *buffer; 
+	pthread_t cria_buff_duplo;
 	pthread_mutex_lock( &exclusao_buff); 
 	while( gravar == -1) 
 		pthread_cond_wait( &buffer_cheio, &exclusao_buff);
@@ -77,9 +78,7 @@ double *bufduplo_esperaBufferCheio_temp_resp( void) {
 		cont_buffer++;
 	}
 	cont_buffer = 0;
-	
-	pthread_t cria_buff_duplo;
-	
+		
 	pthread_create(&cria_buff_duplo, NULL, (void *) bufduplo_esperaBufferCheio_temp_resp, NULL);
 	pthread_join(cria_buff_duplo, NULL);
 }
