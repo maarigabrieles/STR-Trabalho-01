@@ -1,7 +1,4 @@
-/*  Programa de demonstracao de uso de sockets UDP em C no Linux
- *  Funcionamento:
- *  Usuario escolhe opcao no menu e entao envia uma msg para a caldeira.
- */
+/* MONITOR PARA SOCKETS */
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -89,7 +86,7 @@ int recebe_mensagem(int socket_local, char *buffer, int TAM_BUFFER)
 }
 
 /* ==================================
-	Funções implementadas depois como correção
+	Funções para utilização
 
    ==================================*/
 //Função para criar socket
@@ -100,8 +97,8 @@ void cria_socket(char *destino, int porta_destino){
 	endereco_destino = cria_endereco_destino(destino, porta_destino);
 	pthread_mutex_unlock(&exclusao_socket);
 }
-// Função que substitui o do (){}while; para exibir na tela 
 
+// Função para exibir na tela 
 double msg_socket(char * msg){
 	int nrec;
 	char msg_recebida[1000];

@@ -1,4 +1,4 @@
-/* Monitor sensor, no arquivo sensor.c */ 
+/* MONITOR SENSORES */ 
 #include <math.h>
 #include <pthread.h>
 #include <string.h>

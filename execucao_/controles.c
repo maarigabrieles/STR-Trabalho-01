@@ -1,4 +1,5 @@
-//Monitor para controle de temperatura e nivel da agua
+//MONITOR PARA CONTROLE DE TEMPERATURA E NIVEL DA ÁGUA
+
 #include <math.h>
 #include <pthread.h>
 #include <string.h>
@@ -26,7 +27,7 @@ static double limite_atual = HUGE_VAL;
  }
  
  /* Ler o valor do monitor referente a temperatura */ 
- double temperatura_getT(char s[7]) {
+ double temperatura_getT(char s[5]) {
 	 double aux; 
 	 pthread_mutex_lock( &exclusao_controls); 
 	 if(strncmp(s,"t",1)==0){
@@ -48,7 +49,7 @@ static double limite_atual = HUGE_VAL;
  }
  
  /* Ler o valor do monitor referente ao nivel da agua */ 
- double nivelA_getH(char s[7]) {
+ double nivelA_getH(char s[5]) {
 	 double aux; 
 	 pthread_mutex_lock( &exclusao_controls); 
 	 if(strncmp(s,"h",1)==0){
