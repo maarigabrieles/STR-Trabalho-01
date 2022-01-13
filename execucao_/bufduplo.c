@@ -1,4 +1,4 @@
-/* Monitor buffer duplo, no arquivo bufduplo.c */
+/* MONITOR BUFFER DUPLOPARA TEMPO DE RESPOSTA*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,18 +6,23 @@
 
 #define TAMBUF 100 
 
+//Criação dos buffes para operação
 static double buffer_0[TAMBUF]; 
 static double buffer_1[TAMBUF];
 
+//Criação das variaveis usadas
 static int emuso = 0; 
 static int prox_insercao = 0; 
 static int gravar = -1;
 static FILE* dados_arq;
+static int cont = 0;
+static int cont_buffer = 0;
 
 static pthread_mutex_t exclusao_buff = PTHREAD_MUTEX_INITIALIZER; 
 static pthread_cond_t buffer_cheio = PTHREAD_COND_INITIALIZER;
 
-void bufduplo_insereLeitura( double leitura) {
+//Chamado pela thread insere leitura do tempo de resposta
+void bufduplo_insereLeituraTempo_Resposta( double leitura) {
 	pthread_mutex_lock( &exclusao_buff); 
 	if( emuso == 0) 
 		buffer_0[prox_insercao] = leitura; 
@@ -33,32 +38,29 @@ void bufduplo_insereLeitura( double leitura) {
 	pthread_mutex_unlock( &exclusao_buff);
 }
 
-//Função para guardar em arquivo os dados do buffer do tempo de resposta
+//Chamado pela thread para guardar em arquivo os dados do buffer do tempo de resposta
 
-void bufduplo_guardaTempo_espera(double v_lido){
+void bufduplo_guardaTempo_Resposta(double v_lido){
 	
-	printf("\nMedicoes de Tempo de Espera do buffer\n\n");
-	
-	dados_arq = fopen("dados_tempo_resposta_buf.txt", "w");
+	dados_arq = fopen("dados_tempo_resposta_buf.txt", "a+");
 	if(dados_arq == NULL){
         printf("Erro, nao foi possivel abrir o arquivo\n");
         exit(1);    
     }
 	
-	for( int i=0; i< TAMBUF; i++){
-		if(emuso == 0){
-			//buffer_0[i] = v_lido;
-			printf("Tempo de execucao=%4lfus\n", v_lido );
-			fprintf(dados_arq, "%4lf\n", v_lido);	
-		}else {
-			//buffer_1[i] = v_lido;
-			printf("Tempo de execucao=%4lfus\n", v_lido);
-			fprintf(dados_arq, "%4lf\n", v_lido);	
-		}
+   if(cont == 0){
+		cont++;
+		fprintf(dados_arq, "%4lf\n", v_lido);	
+	}else if(cont == 1){
+		cont = 0;
+		fprintf(dados_arq, "%4lf\n", v_lido);	
 	}
+	
 	fclose(dados_arq);
 }
-double *bufduplo_esperaBufferCheio( void) {
+
+// Chamado pela thread que espera e enche o buffer
+double *bufduplo_esperaBufferCheio_temp_resp( void) {
 	double *buffer; 
 	pthread_mutex_lock( &exclusao_buff); 
 	while( gravar == -1) 
@@ -69,6 +71,16 @@ double *bufduplo_esperaBufferCheio( void) {
 		buffer = buffer_1; 
 	gravar = -1; 
 	pthread_mutex_unlock( &exclusao_buff); 
-	return buffer; 
+
+	while(cont_buffer < TAMBUF){
+		bufduplo_guardaTempo_Resposta(buffer[cont_buffer]);
+		cont_buffer++;
+	}
+	cont_buffer = 0;
+	
+	pthread_t cria_buff_duplo;
+	
+	pthread_create(&cria_buff_duplo, NULL, (void *) bufduplo_esperaBufferCheio_temp_resp, NULL);
+	pthread_join(cria_buff_duplo, NULL);
 }
 

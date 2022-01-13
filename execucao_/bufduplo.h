@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void bufduplo_insereLeitura( long leitura);
-void bufduplo_guardaTempo_espera(double v_lido);
-double *bufduplo_esperaBufferCheio( void);
+void bufduplo_insereLeituraTempo_Resposta( double leitura);
+
+void bufduplo_guardaTempo_Resposta(double v_lido);
+
+double *bufduplo_esperaBufferCheio_temp_resp( void);
 
 #endif

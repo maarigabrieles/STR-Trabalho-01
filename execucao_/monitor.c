@@ -1,9 +1,10 @@
-/*	LIVRO FUNDAMENTOS DOS SISTEMAS DE TEMPO REAL
-*
-*	Ilustra a criacao de threads e uso de mutex
-*	Compilar com:	
-*	ou
-*			gcc -o monitor monitor.c sensor.c bufduplo.c -lpthread
+/*	CONTROLE CALDEIRA
+*	Trabalho 01 - Disciplina: Software em Tempo Real
+*	Prof: Reuber Regis
+*	Equipe:	
+*		Francisco Cassiano de Vasconcelos Souza
+*		
+*		
 *
 */
 
@@ -25,12 +26,12 @@ double usuario_temp = 0;
 double usuario_nivel = 0;
 double atraso_tempo_temperatura;
 double atraso_tempo_nivel;
+double tempo_ini = 0;
+double nivel_ini = 0;
 
-/*************************************************************************/
-
-/***
-*	Thread que mostra status na tela
-***/
+/* --------------------------------------------
+	Thread que mostra status dos dados na tela 
+------------------------------------------------*/
 void thread_mostra_status(void) {
 	double ta, t, ti, no, h, ni, q, na, nf;
 	while(1){
@@ -42,14 +43,19 @@ void thread_mostra_status(void) {
 		h = sensor_getH("h");
 		
 		//Pega os valores dos atuadores
-		ni = atuador_getNi("ni");
-		q = atuador_getQ("q");
-		na = atuador_getNa("na");
-		nf = atuador_getNf("nf"); 
+		ni = atuador_getNi("ani");
+		q = atuador_getQ("aq-");
+		na = atuador_getNa("ana");
+		nf = atuador_getNf("anf"); 
 		
+		//Guarda valores lidos do usuarios nas respectivas variaveis
+		usuario_temp = temperatura_getT("t");
+		usuario_nivel = nivelA_getH("h");
 		aloca_tela();
 		system("tput reset");
 		printf("------------------------------------\n");
+		printf("Temperatura digitada do usuario (Te)--> %.2lf\n", usuario_temp);
+		printf("Temperatura do ar (Ta)--> %.2lf\n", usuario_nivel);
 		printf("Temperatura do ar (Ta)--> %.2lf\n", ta);
 		printf("Temperatura interior (T)--> %.2lf\n", t);
 		printf("Temperatura da agua que entra (Ti)--> %.2lf\n", ti);
@@ -65,15 +71,19 @@ void thread_mostra_status(void) {
 		}
 }
 
-/***
-*	Thread que le sensor
-***/
+/* --------------------------------------------
+	Thread para leitura dos sensores
+  --------------------------------------------*/
 void thread_le_sensor(void) {
 	struct timespec t, t_fim;
-	long int periodo = 10e6; 	// 50e6ns ou 50ms
+	long int periodo = 10e6; 	// 10e6ns ou 10ms
 	
 	//Le a hora atual, coloca em t
 	clock_gettime(CLOCK_MONOTONIC ,&t);
+	
+	// Tarefa iniciará em 1 segundo
+	t.tv_sec++;
+	
 	while(1){
 		//Espera ate o inicio do proximo periodo
 		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
@@ -93,12 +103,13 @@ void thread_le_sensor(void) {
 		}	
 	}
 }
-
-//Thread para o Controle de Temperatura
+/* --------------------------------------------
+	Thread para o Controle de Temperatura
+ -------------------------------------------- */
 void thread_controle_Temperatura(void){
 	struct timespec t, t_fim;
-	long int periodo = 50e6; 	// 50ms
-	double temp_aux;
+	long int periodo = 50e6; 	// 50e6ns ou 50ms atendendo o requisito 1.
+	double temp_aux = 0;
 	double temperatura_lida = 0;
 	
 	// Le a hora atual, coloca em t
@@ -110,23 +121,20 @@ void thread_controle_Temperatura(void){
 	while(1) {
 		// Espera ateh inicio do proximo periodo
 		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
-		
-		
-		//VERIFICAR
-    	// Inicio da operação    	
+			
+	   	// Inicio da operação    	
     	temp_aux = sensor_getT("t");
     	temperatura_lida = temperatura_getT("t");
 
-    	if (temp_aux<temperatura_lida){ //aumentar temp
-    	    //printf("temperatura menor do q a escolhida pelo usuario %.2lf\n",temperatura_desejada);
-    		atuador_putQ(msg_socket("ana10.7"));
-    		
+    	if (temp_aux<temperatura_lida){ //Regula temperatura, aumentando se for o caso..
+    	        	
+			atuador_putNa(msg_socket("ana10.0"));    		
 		}
-		else if (temp_aux>temperatura_lida){ //diminuir temp
-    		//printf("temperatura maior do q a escolhida pelo usuario %.2lf\n",temperatura_desejada);
-	    	atuador_putNi(msg_socket("ani00.0"));
+		else if (temp_aux>temperatura_lida){ //Regula temperatura, diminuindo se for o caso..
+    	
+			atuador_putNa(msg_socket("ana00.0"));
     		
-    		atuador_putNa(msg_socket("ana100.0"));
+    		atuador_putNi(msg_socket("ani100.0"));
 	    	
 	    	atuador_putNf(msg_socket("anf50.0"));
 		}
@@ -135,10 +143,9 @@ void thread_controle_Temperatura(void){
 		// Le a hora atual, coloca em t_fim
 		clock_gettime(CLOCK_MONOTONIC ,&t_fim);	
 			
-		// Calcula o tempo de resposta observado em microsegundos
+		// Calcula o tempo de resposta observado em microsegundos e armazena em atraso_tempo_temperatura
 		atraso_tempo_temperatura = 1000000*(t_fim.tv_sec - t.tv_sec)   +   (t_fim.tv_nsec - t.tv_nsec)/1000;
-		//bufduplo_insereLeitura_tempo_resposta(atraso_fim_temperatura);
-		
+				
 		// Calcula inicio do proximo periodo
 		t.tv_nsec += periodo;
 		while (t.tv_nsec >= NSEC_PER_SEC) {
@@ -148,11 +155,13 @@ void thread_controle_Temperatura(void){
 	}
 }
 
-//Thread para o Controle de Nivel da água
+/* --------------------------------------------
+	Thread para o Controle de Nivel da água
+  --------------------------------------------*/
 void thread_controle_Nivel(void){
 	struct timespec t, t_fim;
-	long int periodo = 70e6; 	// 70ms
-	double nivel_aux;
+	long int periodo = 70e6; 	// 70e6ns ou 70ms atendendo o requisito 2.
+	double nivel_aux =0;
 	double nivel_lido = 0;
 	
 	// Le a hora atual, coloca em t
@@ -165,34 +174,30 @@ void thread_controle_Nivel(void){
 		// Espera ateh inicio do proximo periodo
 		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
 		
-		
-		//VERIFICAR
-    	// Inicio da operação    	
+    	// Inicio da operação    
     	nivel_aux = sensor_getH("h");
     	nivel_lido = nivelA_getH("h");
 
-    	if (nivel_aux<nivel_lido){ //aumentar temp
-    	    //printf("temperatura menor do q a escolhida pelo usuario %.2lf\n",temperatura_desejada);
+    	if (nivel_aux<nivel_lido){ //Regula temperatura, aumentando se for o caso, para influenciar o nivel..
+    	   
     		atuador_putNi(msg_socket("ani70.0"));
     		
-    		atuador_putNf(msg_socket("anf00.0"));
-    		
+    		atuador_putNf(msg_socket("anf00.0"));	
 		}
-		else if (nivel_aux>nivel_lido){ //diminuir temp
-    		//printf("temperatura maior do q a escolhida pelo usuario %.2lf\n",temperatura_desejada);
+		else if (nivel_aux>nivel_lido){ //Regula temperatura, diminuindo se for o caso, para influenciar o nivel..
+    		
 	    	atuador_putNi(msg_socket("ani00.0"));
-    	    		    	
-	    	atuador_putNf(msg_socket("anf70.0"));
+    		
+    		atuador_putNf(msg_socket("anf70.0"));
 		}
 
 		   	
 		// Le a hora atual, coloca em t_fim
 		clock_gettime(CLOCK_MONOTONIC ,&t_fim);	
 			
-		// Calcula o tempo de resposta observado em microsegundos
+		// Calcula o tempo de resposta observado em microsegundos e armazena valor em atraso_tempo_nivel
 		atraso_tempo_nivel = 1000000*(t_fim.tv_sec - t.tv_sec)   +   (t_fim.tv_nsec - t.tv_nsec)/1000;
-		//bufduplo_insereLeitura_tempo_resposta(atraso_fim_temperatura);
-		
+				
 		// Calcula inicio do proximo periodo
 		t.tv_nsec += periodo;
 		while (t.tv_nsec >= NSEC_PER_SEC) {
@@ -201,9 +206,41 @@ void thread_controle_Nivel(void){
 		}
 	}
 }
-/***
+
+/* ----------------------------------------------------
+	Thread que armazena leitura do tempo de resposta 
+  -----------------------------------------------------*/
+void thread_bufduplo_tempo_resposta(void){
+	struct timespec t, t_fim;;
+	long int periodo = 50e6; 	// 50ms
+			
+	// Le a hora atual, coloca em t
+	clock_gettime(CLOCK_MONOTONIC ,&t);
+
+	// Tarefa periodica iniciará em 1 segundo
+	t.tv_sec++;
+
+	while(1){
+		
+		if(atraso_tempo_temperatura!=tempo_ini && atraso_tempo_nivel!=nivel_ini){
+			bufduplo_insereLeituraTempo_Resposta(atraso_tempo_temperatura);
+			bufduplo_insereLeituraTempo_Resposta(atraso_tempo_nivel);
+			tempo_ini = atraso_tempo_temperatura;
+			nivel_ini = atraso_tempo_nivel;
+		}
+				
+		// Calcula inicio do proximo periodo
+		t.tv_nsec += periodo;
+		while (t.tv_nsec >= NSEC_PER_SEC) {
+			t.tv_nsec -= NSEC_PER_SEC;
+			t.tv_sec++;
+		}
+	}
+}
+
+/* -------------------------------
 *	Thread que dispara alarme
-***/
+-----------------------------------*/
 void thread_alarme(void) {
 	while(1){			
 		sensor_alarme(30);		
@@ -216,7 +253,9 @@ void thread_alarme(void) {
 	}
 }
 
-//Thread para ler do usuario os dados de referência da temperatura e do nivel de agua 
+/* --------------------------------------------------------------------------------------
+	Thread para ler do usuario os dados de referência da temperatura e do nivel de agua 
+  -------------------------------------------------------------------------------------*/
 void thread_ler_usuario(void){
 	printf("Digite um valor de referencia para a Temperatura:\n");
 	scanf("%lf", &usuario_temp);
@@ -226,27 +265,32 @@ void thread_ler_usuario(void){
 	scanf("%lf", &usuario_nivel);
 	nivelA_putH(usuario_nivel);
 }
-
-//Inicio chamada da operação
+/* ----------------------------------------
+	Inicio chamada da função principal
+/* ----------------------------------------*/
 int main( int argc, char *argv[]) {
-	
+	//Cria socket
 	cria_socket(argv[1], atoi(argv[2]));
 	
-    pthread_t t1, t2, t3, ler_usuario, controle_temp, controle_nivel;
+	//criação das respectivas threads trabalhadas
+    pthread_t t1, t2, t3, ler_usuario, controle_temp, controle_nivel, espera_buffer, tempo_resposta_buffd;
     
     pthread_create(&ler_usuario, NULL, (void *) thread_ler_usuario, NULL);
     pthread_join( ler_usuario, NULL);
     pthread_create(&t1, NULL, (void *) thread_mostra_status, NULL);
     pthread_create(&t2, NULL, (void *) thread_le_sensor, NULL);
-    pthread_create(&t3, NULL, (void *) thread_alarme, NULL);
+    pthread_create(&espera_buffer, NULL, (void *) *bufduplo_esperaBufferCheio_temp_resp, NULL);
     pthread_create(&controle_temp, NULL, (void *) thread_controle_Temperatura, NULL);
     pthread_create(&controle_nivel, NULL, (void *) thread_controle_Nivel, NULL);
+    pthread_create(&t3, NULL, (void *) thread_alarme, NULL);
+    pthread_create(&tempo_resposta_buffd, NULL, (void *) thread_bufduplo_tempo_resposta, NULL);
     
-
 	
 	pthread_join( t1, NULL);
 	pthread_join( t2, NULL);
+	pthread_join( espera_buffer, NULL);
 	pthread_join( t3, NULL);
 	pthread_join( controle_temp, NULL);
 	pthread_join( controle_nivel, NULL);
+	pthread_join( tempo_resposta_buffd, NULL);
 }

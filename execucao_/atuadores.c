@@ -12,13 +12,13 @@ static double atuador_Q = 0;
 static double atuador_Na = 0;
 static double atuador_Nf = 0;
 
-static double limite_range = HUGE_VAL;
+static double limite_atual = HUGE_VAL;
 
 /* Chamado pela thread que le o Atuador Ni e disponibiliza aqui o valor lido */
  void atuador_putNi(double v_lido) {
 	 pthread_mutex_lock( &exclusao_atuador); 
 	 atuador_Ni = v_lido;
-	 if( atuador_Ni >= limite_range) 
+	 if( atuador_Ni >= limite_atual) 
 	 	pthread_cond_signal( &alarme); 
 	 pthread_mutex_unlock( &exclusao_atuador); 
  }
@@ -27,7 +27,7 @@ static double limite_range = HUGE_VAL;
  double atuador_getNi(char s[6]) {
 	 double aux; 
 	 pthread_mutex_lock( &exclusao_atuador); 
-	 if(strncmp(s,"ni",1)==0){
+	 if(strncmp(s,"ani",1)==0){
 	 	aux = atuador_Ni; 
 	 }
 	 pthread_mutex_unlock( &exclusao_atuador); 
@@ -38,7 +38,7 @@ static double limite_range = HUGE_VAL;
  void atuador_putQ(double v_lido) {
 	 pthread_mutex_lock( &exclusao_atuador); 
 	 atuador_Q = v_lido;
-	 if( atuador_Q >= limite_range) 
+	 if( atuador_Q >= limite_atual) 
 	 	pthread_cond_signal( &alarme); 
 	 pthread_mutex_unlock( &exclusao_atuador); 
  }
@@ -47,7 +47,7 @@ static double limite_range = HUGE_VAL;
  double atuador_getQ(char s[6]) {
 	 double aux; 
 	 pthread_mutex_lock( &exclusao_atuador); 
-	 if(strncmp(s,"aq",1)==0){
+	 if(strncmp(s,"aq-",1)==0){
 	 	aux = atuador_Q; 
 	 }
 	 pthread_mutex_unlock( &exclusao_atuador); 
@@ -58,7 +58,7 @@ static double limite_range = HUGE_VAL;
  void atuador_putNa(double v_lido) {
 	 pthread_mutex_lock( &exclusao_atuador); 
 	 atuador_Na = v_lido;
-	 if( atuador_Na >= limite_range) 
+	 if( atuador_Na >= limite_atual) 
 	 	pthread_cond_signal( &alarme); 
 	 pthread_mutex_unlock( &exclusao_atuador); 
  }
@@ -78,7 +78,7 @@ static double limite_range = HUGE_VAL;
  void atuador_putNf(double v_lido) {
 	 pthread_mutex_lock( &exclusao_atuador); 
 	 atuador_Nf = v_lido;
-	 if( atuador_Nf >= limite_range) 
+	 if( atuador_Nf >= limite_atual) 
 	 	pthread_cond_signal( &alarme); 
 	 pthread_mutex_unlock( &exclusao_atuador); 
  }
