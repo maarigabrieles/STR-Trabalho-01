@@ -26,9 +26,7 @@
 double usuario_temp = 0;
 double usuario_nivel = 0;
 double atraso_tempo_temperatura;
-double atraso_tempo_nivel;
 double tempo_ini = 0;
-double nivel_ini = 0;
 
 /* --------------------------------------------
 	Thread que mostra status dos dados na tela 
@@ -76,8 +74,8 @@ void thread_mostra_status(void) {
 	Thread para leitura dos sensores
   --------------------------------------------*/
 void thread_le_sensor(void) {
-	struct timespec t, t_fim;
-	long int periodo = 10e6; 	// 10e6ns ou 10ms
+	struct timespec t;
+	long int periodo = 20e6; 	// 20e6ns ou 20ms
 	
 	//Le a hora atual, coloca em t
 	clock_gettime(CLOCK_MONOTONIC ,&t);
@@ -160,7 +158,7 @@ void thread_controle_Temperatura(void){
 	Thread para o Controle de Nivel da água
   --------------------------------------------*/
 void thread_controle_Nivel(void){
-	struct timespec t, t_fim;
+	struct timespec t;
 	long int periodo = 70e6; 	// 70e6ns ou 70ms atendendo o requisito 2.
 	double nivel_aux =0;
 	double nivel_lido = 0;
@@ -191,14 +189,7 @@ void thread_controle_Nivel(void){
     		
     		atuador_putNf(msg_socket("anf70.0"));
 		}
-
-		   	
-		// Le a hora atual, coloca em t_fim
-		clock_gettime(CLOCK_MONOTONIC ,&t_fim);	
-			
-		// Calcula o tempo de resposta observado em microsegundos e armazena valor em atraso_tempo_nivel
-		atraso_tempo_nivel = 1000000*(t_fim.tv_sec - t.tv_sec)   +   (t_fim.tv_nsec - t.tv_nsec)/1000;
-				
+		  		
 		// Calcula inicio do proximo periodo
 		t.tv_nsec += periodo;
 		while (t.tv_nsec >= NSEC_PER_SEC) {
@@ -212,7 +203,7 @@ void thread_controle_Nivel(void){
 	Thread que armazena leitura do tempo de resposta 
   -----------------------------------------------------*/
 void thread_bufduplo_tempo_resposta(void){
-	struct timespec t, t_fim;;
+	struct timespec t;
 	long int periodo = 50e6; 	// 50ms
 			
 	// Le a hora atual, coloca em t
@@ -223,11 +214,9 @@ void thread_bufduplo_tempo_resposta(void){
 
 	while(1){
 		
-		if(atraso_tempo_temperatura!=tempo_ini && atraso_tempo_nivel!=nivel_ini){
+		if(atraso_tempo_temperatura!=tempo_ini){
 			bufduplo_insereLeituraTempo_Resposta(atraso_tempo_temperatura);
-			bufduplo_insereLeituraTempo_Resposta(atraso_tempo_nivel);
 			tempo_ini = atraso_tempo_temperatura;
-			nivel_ini = atraso_tempo_nivel;
 		}
 				
 		// Calcula inicio do proximo periodo
