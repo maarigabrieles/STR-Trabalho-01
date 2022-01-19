@@ -236,7 +236,7 @@ void thread_alarme(void) {
 		sensor_alarme(30);		
 		aloca_tela();
 		printf("=========================\n");
-		printf("		ALARME!!!\n");
+		printf("        ALARME!!!\n");
 		printf("==========================\n");
 		libera_tela();
 		sleep(1);	

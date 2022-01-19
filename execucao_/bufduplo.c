@@ -50,7 +50,7 @@ void bufduplo_guardaTempo_Resposta(double v_lido){
 	
    if(cont == 0){
 		cont++;
-		fprintf(dados_arq, "%4lf\n", v_lido);	
+		fprintf(dados_arq, "%4lf\t", v_lido);	
 	}else if(cont == 1){
 		cont = 0;
 		fprintf(dados_arq, "%4lf\n", v_lido);	
