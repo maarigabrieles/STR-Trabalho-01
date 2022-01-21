@@ -16,3 +16,6 @@
 - Executar, ainda no Linux, a main da aplicação utilizando o seguinte comando:
       
       ./monitor ip(WSL) 4545
+- Será solicitado do usuário valores de referência da temperatura e nível da água.
+- Por fim, o programa entrará em execução e o usuário poderá realizar perturbações em tempo real nos sensores da caldeira.
+- Faça bom uso.
