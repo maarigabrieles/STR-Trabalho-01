@@ -4,7 +4,7 @@
 #### Para execução e compilação dos arquivos:
 - Ter instalado na máquina WSL.2 e uma distribuição Linux de sua preferência.
 - Abrir a janela do PowerShell no caminho dos arquivos, localizados na pasta **execucao_**.
-- Procurar **ip(WSL)** da máquina utilizando o comando _ipconfig_.
+- Procurar **ip(WSL)** da máquina utilizando o comando: _ipconfig_
 - Com o Java instalado, executar o seguinte comando com a porta:
       
       java -jar .\Aquecedor2021.jar 4545
